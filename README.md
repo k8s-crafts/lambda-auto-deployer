@@ -24,9 +24,11 @@ This lambda requires permssions to `update-function-code` for other lambdas. Thu
 
 ### Environment variables
 
-- `LAMBDA_NAMES`: A comma-separated list of targeted lambda names. For examples, `LAMBDA_NAMES=my-lambda,lambda-1`.
-- `LAMBDA_IMAGE_REPOS`: A comma-separated list of lambda image repositories. The order must match that of `LAMBDA_NAMES`, where each repository will correspond to each lambda name in the same list position. For examples, `LAMBDA_IMAGE_REPOS=my-lambda-repo,lambda-1-repo`.
-- `LAMBDA_IMAGE_TAGS`: A comma-separated list of lambda image tags that the should trigger the new deployment of the targeted lambdas. For examples, `LAMBDA_IMAGE_TAGS=0.1.0-dev,dev,0.1.0-snapshot`.
+|VARIABLE|DESCRIPTION|
+|:--|:--|
+|`LAMBDA_NAMES`|A comma-separated list of targeted lambda names. For examples, `LAMBDA_NAMES=my-lambda,lambda-1`.|
+|`LAMBDA_IMAGE_REPOS`|A comma-separated list of lambda image repositories. The order must match that of `LAMBDA_NAMES`, where each repository will correspond to each lambda name in the same list position. For examples, `LAMBDA_IMAGE_REPOS=my-lambda-repo,lambda-1-repo`.|
+|`LAMBDA_IMAGE_TAGS`|A comma-separated list of lambda image tags that the should trigger the new deployment of the targeted lambdas. For examples, `LAMBDA_IMAGE_TAGS=0.1.0-dev,dev,0.1.0-snapshot`.|
 
 ### AWS Amazon EventBridge
 

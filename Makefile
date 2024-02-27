@@ -19,6 +19,17 @@ IMAGE_BUILDER ?= podman
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
+##@ Development
+
+.PHONY: add-license
+add-license: ## Add license header to source file
+	$(IMAGE_BUILDER) run \
+		--name addlicense \
+		--security-opt label=disable \
+		-v "$${PWD}":"/src" \
+		-it --replace \
+		ghcr.io/google/addlicense -v -f ./license.header.txt *.go utils/*.go
+
 ##@ Lambda
 
 AWS_REGION ?= ca-central-1

@@ -31,8 +31,9 @@ const (
 	DefaultRegion = "ca-central-1"
 	TimeOut       = 2 * time.Minute
 
-	LAMBDA_NAMES_ENV_VAR = "LAMBDA_NAMES"
-	LAMBDA_REPOS_ENV_VAR = "LAMBDA_IMAGE_REPOS"
+	LAMBDA_NAMES_ENV_VAR      = "LAMBDA_NAMES"
+	LAMBDA_REPOS_ENV_VAR      = "LAMBDA_IMAGE_REPOS"
+	LAMBDA_IMAGE_TAGS_ENV_VAR = "LAMBDA_IMAGE_TAGS"
 )
 
 func GetAWSRegion() string {
@@ -79,6 +80,18 @@ func GetLambdaMapping() map[string]string {
 	}
 
 	return mapping
+}
+
+type ImageTagFilter func(tag string) bool
+
+func GetImageTagFilter() ImageTagFilter {
+	tags, found := os.LookupEnv(LAMBDA_IMAGE_TAGS_ENV_VAR)
+	return func(tag string) bool {
+		if !found {
+			return true
+		}
+		return strings.Contains(tags, tag)
+	}
 }
 
 type Event struct {

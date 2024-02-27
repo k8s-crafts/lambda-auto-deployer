@@ -50,8 +50,19 @@ func HandleRequest(ctx context.Context, event *utils.Event) error {
 	client := utils.GetLambdaClient(*config)
 
 	lambda := mapping[event.Detail.RepositoryName]
+
+	// No lambda matched
 	if len(lambda) == 0 {
 		log.Printf("no lambda to roll out for repository: %s. Skipped", event.Detail.RepositoryName)
+		return nil
+	}
+
+	tagFilter := utils.GetImageTagFilter()
+	matched := tagFilter(event.Detail.ImageTag)
+
+	// Image tag should be ignored
+	if !matched {
+		log.Printf("tag %s for image %s is not selected. Skipped", event.Detail.ImageTag, event.Detail.RepositoryName)
 		return nil
 	}
 

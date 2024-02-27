@@ -39,7 +39,7 @@ func HandleRequest(ctx context.Context, event *utils.Event) error {
 		return nil
 	}
 
-	imageUri := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com/%s:%s", event.Account, event.Detail.Region, event.Detail.RepositoryName, event.Detail.ImageTag)
+	imageUri := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com/%s:%s", event.Account, event.Region, event.Detail.RepositoryName, event.Detail.ImageTag)
 
 	updateOpts := &lambdasdk.UpdateFunctionCodeInput{
 		FunctionName:  &lambda,

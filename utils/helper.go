@@ -68,6 +68,7 @@ func GetLambdaMapping() map[string]string {
 type Event struct {
 	Detail  EventDetail `json:"detail"`
 	Account string      `json:"account"`
+	Region  string      `json:"region"`
 }
 
 type EventDetail struct {
@@ -76,5 +77,4 @@ type EventDetail struct {
 	ImageTag       string `json:"image-tag"`
 	RepositoryName string `json:"repository-name"`
 	Result         string `json:"result"`
-	Region         string `json:"region"`
 }

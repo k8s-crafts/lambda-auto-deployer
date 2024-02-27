@@ -6,15 +6,23 @@ import (
 	"log"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	lambdasdk "github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/tthvo/lambda-auto-deployer/utils"
 )
 
-func HandleRequest(ctx context.Context, event utils.Event) error {
+func HandleRequest(ctx context.Context, event *utils.Event) error {
 	if event == nil {
 		return fmt.Errorf("event must not be nil")
 	}
 
 	log.Printf("received event: %+v\n", event)
+
+	// Get a mapping from lambda name to ECR repository, vice versa
+	mapping := utils.GetLambdaMapping()
+	if mapping == nil {
+		return fmt.Errorf("lambda mapping is not available")
+	}
 
 	// Find AWS configurations
 	config, err := utils.GetAWSConfig(ctx)
@@ -24,21 +32,26 @@ func HandleRequest(ctx context.Context, event utils.Event) error {
 
 	// Create a Lambda client to roll out new lambda version
 	client := utils.GetLambdaClient(*config)
-	log.Printf("using lamdba client: %+v\n", client)
 
-	// log.Println("using context: ")
+	lambda := mapping[event.Detail.RepositoryName]
+	if len(lambda) == 0 {
+		log.Printf("no lambda to roll out for repository: %s. Skipped", event.Detail.RepositoryName)
+		return nil
+	}
 
-	// updateOpts := &lambdasdk.UpdateFunctionCodeInput{
-	// 	FunctionName:  &[]string{""}[0],
-	// 	Architectures: []types.Architecture{},
-	// 	ImageUri:      &[]string{""}[0],
-	// }
-	// out, err := client.UpdateFunctionCode(ctx, updateOpts)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to update function code: %s", err.Error())
-	// }
+	imageUri := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com/%s:%s", event.Account, event.Detail.Region, event.Detail.RepositoryName, event.Detail.ImageTag)
 
-	// log.Printf("sucessfully roll out %s(%s)", *out.FunctionName, *out.FunctionArn)
+	updateOpts := &lambdasdk.UpdateFunctionCodeInput{
+		FunctionName:  &lambda,
+		Architectures: []types.Architecture{types.ArchitectureX8664},
+		ImageUri:      &imageUri,
+	}
+	out, err := client.UpdateFunctionCode(ctx, updateOpts)
+	if err != nil {
+		return fmt.Errorf("failed to update function code: %s", err.Error())
+	}
+
+	log.Printf("sucessfully roll out %s(%s)", *out.FunctionName, *out.FunctionArn)
 	return nil
 
 }

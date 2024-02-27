@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,6 +14,9 @@ import (
 const (
 	DefaultRegion = "ca-central-1"
 	TimeOut       = 2 * time.Minute
+
+	LAMBDA_NAMES_ENV_VAR = "LAMBDA_NAMES"
+	LAMBDA_REPOS_ENV_VAR = "LAMBDA_IMAGE_REPOS"
 )
 
 func GetAWSRegion() string {
@@ -36,23 +40,41 @@ func GetLambdaClient(config aws.Config) *lambda.Client {
 	return lambda.NewFromConfig(config)
 }
 
-type Event map[string]interface{}
+func GetLambdaMapping() map[string]string {
+	lambdaStr, found := os.LookupEnv(LAMBDA_NAMES_ENV_VAR)
+	if !found {
+		return nil
+	}
+	repoStr, _ := os.LookupEnv(LAMBDA_REPOS_ENV_VAR)
+	repositories := strings.Split(repoStr, ",")
 
-type LambdaSource struct {
-	// Lambda source code is packaged as a container image.
-	Image Image
+	mapping := make(map[string]string)
+
+	for i, lambda := range strings.Split(lambdaStr, ",") {
+		repo := ""
+		if i < len(repositories) {
+			repo = repositories[i]
+		}
+		mapping[lambda] = repo
+
+		if len(repo) > 0 {
+			mapping[repo] = lambda
+		}
+	}
+
+	return mapping
 }
 
-type Image struct {
-	// The name of the container image, for example, `public.ecr.aws/lambda/python:3.12`.
-	Name string
-	// Platform of the container image, for example, `linnux/amd64` or `linnux/arm64`
-	Platform Platform
+type Event struct {
+	Detail  EventDetail `json:"detail"`
+	Account string      `json:"account"`
 }
 
-type Platform struct {
-	// Architecture field specifies the CPU architecture, for example, `amd64` or `arm64`.
-	Architecture string
-	// OS specifies the operating system, for example, `linux` or `windows`.
-	OS string
+type EventDetail struct {
+	ActionType     string `json:"action-type"`
+	ImageDigest    string `json:"image-digest"`
+	ImageTag       string `json:"image-tag"`
+	RepositoryName string `json:"repository-name"`
+	Result         string `json:"result"`
+	Region         string `json:"region"`
 }
